@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!-- Formulário de Cadastro Local -->
+<form id="mundoForm">
+    <input type="text" id="nome" placeholder="Nome do Planeta" required>
+    <input type="text" id="clima" placeholder="Clima">
+    <button type="button" onclick="salvarMundo()">Salvar no Banco</button>
+</form>
+<!-- Consulta de Planeta na API Externa -->
+<h3>Pesquisar na SWAPI</h3>
+<input type="number" id="swapiId" placeholder="ID do Planeta (Ex: 1)">
+<button type="button" onclick="buscarSwapi()">Pesquisar Planeta</button>
+<div id="resultadoExterno"></div>
+<script>
+    function salvarMundo() {
+        const dados = {
+            nome: document.getElementById('nome').value,
+            clima: document.getElementById('clima').value
+        };
+        fetch('/api/mundos', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dados)
+        }).then(res => alert('Mundo salvo com sucesso localmente!'));
+    }
+    function buscarSwapi() {
+        const id = document.getElementById('swapiId').value;
+        fetch(`/api/mundos/externo/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('resultadoExterno').innerText =
+                    `Nome: ${data.name} | Gravidade: ${data.gravity || 'N/A'}`;
+            });
+        3
+    }
+</script>
+</body>
+</html>
