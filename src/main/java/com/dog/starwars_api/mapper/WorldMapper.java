@@ -5,6 +5,8 @@ import com.dog.starwars_api.dto.WorldResponse;
 import com.dog.starwars_api.model.WorldModel;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class WorldMapper {
     public WorldModel toModel (WorldRequest request){
@@ -28,6 +30,10 @@ public class WorldMapper {
         response.setPopulation(model.getPopulation());
 
         return response;
+    }
+
+    public List<WorldResponse> toWorldsResponseList(List<WorldModel> model){
+        return  model.stream().map(this::toResponse).toList();
     }
 
 }

@@ -6,6 +6,8 @@ import com.dog.starwars_api.model.WorldModel;
 import com.dog.starwars_api.repository.WorldRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class WorldService {
     private final WorldRepository repository;
@@ -22,14 +24,23 @@ public class WorldService {
 
        return repository.save(world);
     }
-    public WorldModel findWorld(Long id){
+
+
+    public WorldModel findWorldById(Long id){
         return repository.findById(id).
-                orElseThrow(() -> new RuntimeException("Mundo não encontrado com id: " + id));
+                        orElseThrow(() -> new RuntimeException("Mundo não encontrado com id: " + id));
+    }
+    public List<WorldModel> findAllWorldsLocal(){
+        List<WorldModel> worlds = repository.findAll();
+        if(worlds.isEmpty()){
+            throw new RuntimeException("Nenhum Mundo encontrado");
+        }
+        return worlds;
     }
 
-    public WorldModel updateWorld (WorldRequest request, Long id){
+    public WorldModel updateWorld (Long id, WorldRequest request){
 
-        WorldModel world = findWorld(id);
+        WorldModel world = findWorldById(id);
 
         world.setName(request.getName());
         world.setClimate(request.getClimate());
@@ -44,10 +55,8 @@ public class WorldService {
        if(!repository.existsById(id)){
             throw new IllegalArgumentException("ID informado não existe");
        }
-        repository.deleteById(id);
+       repository.deleteById(id);
     }
-
-
 
 
 
