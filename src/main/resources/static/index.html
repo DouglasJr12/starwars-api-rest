@@ -1,45 +1,326 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Cadastro e consulta de mundos</title>
 </head>
+
 <body>
-<!-- Formulário de Cadastro Local -->
+
+<!-- Formulário de Cadastro e Edição Local -->
 <form id="mundoForm">
-    <input type="text" id="nome" placeholder="Nome do Planeta" required>
-    <input type="text" id="clima" placeholder="Clima predominante">
-    <input type="text" id="terreno" placeholder="Caracteristica do terreno">
-    <input type="text" id="população" placeholder="Numero populacional">
-    <button type="button" onclick="salvarMundo()">Salvar Mundo</button>
+
+    <input
+            type="text"
+            id="name"
+            placeholder="Nome do Planeta"
+            required
+    >
+
+    <input
+            type="text"
+            id="climate"
+            placeholder="Clima predominante"
+    >
+
+    <input
+            type="text"
+            id="land"
+            placeholder="Terreno"
+    >
+
+    <input
+            type="text"
+            id="population"
+            placeholder="População"
+    >
+
+    <button type="button" onclick="salvarMundo()">
+        Salvar Mundo
+    </button>
+
 </form>
+
+
 <!-- Consulta de Planeta na API Externa -->
 <h3>Pesquisar na SWAPI</h3>
-<input type="number" id="swapiId" placeholder="ID do Planeta (Ex: 1)">
-<button type="button" onclick="buscarSwapi()">Pesquisar Planeta</button>
+
+<input
+        type="number"
+        id="swapiId"
+        placeholder="ID do Planeta (Ex: 1)"
+>
+
+<button type="button" onclick="buscarSwapi()">
+    Pesquisar Planeta
+</button>
+
 <div id="resultadoExterno"></div>
+
+
+<!-- Consulta de Mundos Locais -->
+<h3>Pesquisar Mundos Locais</h3>
+
+<button type="button" onclick="buscarMundosLocais()">
+    Consultar Mundos
+</button>
+
+<div id="resultadoLocal"></div>
+
+
 <script>
+
+    // Guarda o ID do mundo que está sendo editado.
+    // null significa que nenhum mundo está sendo editado.
+    let mundoEditandoId = null;
+
+
+    // Guarda na memória os mundos que vieram da API.
+    let mundosLocais = [];
+
+
+    // =========================================================
+    // CRIAR OU ATUALIZAR MUNDO
+    // =========================================================
+
     function salvarMundo() {
+
+        // Cria um objeto JavaScript com os dados do formulário.
         const dados = {
-            nome: document.getElementById('nome').value,
-            clima: document.getElementById('clima').value
+
+            name: document.getElementById('name').value,
+
+            climate: document.getElementById('climate').value,
+
+            land: document.getElementById('land').value,
+
+            population: document.getElementById('population').value
         };
-        fetch('/api/mundos', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+
+
+        // Por padrão, vamos criar um novo mundo.
+        let url = '/api/mundos';
+
+        let metodo = 'POST';
+
+
+        // Se existe um ID sendo editado,
+        // então devemos atualizar em vez de criar.
+        if (mundoEditandoId !== null) {
+
+            url = `/api/mundos/${mundoEditandoId}`;
+
+            metodo = 'PUT';
+        }
+
+
+        // Faz a requisição HTTP para o backend.
+        fetch(url, {
+
+            method: metodo,
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
             body: JSON.stringify(dados)
-        }).then(res => alert('Mundo salvo com sucesso localmente!'));
-    }
-    function buscarSwapi() {
-        const id = document.getElementById('swapiId').value;
-        fetch(`/api/mundos/externo/${id}`)
-            .then(res => res.json())
+
+        })
+
+            // Recebe a resposta do backend.
+            .then(res => {
+
+                // Verifica se a resposta HTTP foi bem-sucedida.
+                if (!res.ok) {
+
+                    throw new Error('Erro ao salvar mundo');
+                }
+
+                // Converte a resposta para JSON.
+                return res.json();
+            })
+
+            // Executa depois que o JSON estiver pronto.
             .then(data => {
+
+                // Verifica se estávamos editando um mundo.
+                if (mundoEditandoId !== null) {
+
+                    alert('Mundo atualizado com sucesso!');
+
+                } else {
+
+                    alert('Mundo salvo com sucesso!');
+                }
+
+
+                // Sai do modo edição.
+                mundoEditandoId = null;
+
+
+                // Volta o texto do botão para "Salvar Mundo".
+                document.querySelector('#mundoForm button').textContent =
+                    'Salvar Mundo';
+
+
+                // Limpa os campos do formulário.
+                document.getElementById('mundoForm').reset();
+
+
+                // Busca novamente os mundos para atualizar a tela.
+                buscarMundosLocais();
+
+            })
+
+            // Captura erros.
+            .catch(error => {
+
+                console.error(error);
+
+                alert('Não foi possível salvar o mundo.');
+            });
+    }
+
+
+    // =========================================================
+    // EDITAR MUNDO
+    // =========================================================
+
+    function editarMundo(id) {
+
+        // Procura na lista o mundo que possui o ID recebido.
+        const mundo = mundosLocais.find(mundo => mundo.id === id);
+
+
+        // Se não encontrou o mundo...
+        if (!mundo) {
+
+            alert('Mundo não encontrado.');
+
+            return;
+        }
+
+
+        // Guarda o ID do mundo que estamos editando.
+        mundoEditandoId = mundo.id;
+
+
+        // Coloca os dados do mundo dentro do formulário.
+        document.getElementById('name').value = mundo.name;
+
+        document.getElementById('climate').value = mundo.climate;
+
+        document.getElementById('land').value = mundo.land;
+
+        document.getElementById('population').value = mundo.population;
+
+
+        // Altera o texto do botão.
+        document.querySelector('#mundoForm button').textContent =
+            'Atualizar Mundo';
+    }
+
+
+    // =========================================================
+    // CONSULTAR SWAPI
+    // =========================================================
+
+    function buscarSwapi() {
+
+        // Pega o ID digitado pelo usuário.
+        const id = document.getElementById('swapiId').value;
+
+
+        // Faz uma requisição GET para o backend.
+        fetch(`/api/mundos/externo/${id}`)
+
+            // Converte a resposta para JSON.
+            .then(res => res.json())
+
+            // Recebe os dados convertidos.
+            .then(data => {
+
                 document.getElementById('resultadoExterno').innerText =
                     `Nome: ${data.name} | Gravidade: ${data.gravity || 'N/A'}`;
             });
-        3
     }
+
+
+    // =========================================================
+    // CONSULTAR MUNDOS LOCAIS
+    // =========================================================
+
+    function buscarMundosLocais() {
+
+        // Faz uma requisição GET para o backend.
+        fetch('/api/mundos/local')
+
+            // Converte a resposta para JSON.
+            .then(res => res.json())
+
+            // Recebe a lista de mundos.
+            .then(data => {
+
+                // Guarda os mundos na variável global.
+                mundosLocais = data;
+
+
+                // Pega a div onde os mundos serão exibidos.
+                const resultado =
+                    document.getElementById('resultadoLocal');
+
+
+                // Limpa o conteúdo anterior.
+                resultado.innerHTML = '';
+
+
+                // Percorre cada mundo recebido da API.
+                data.forEach(mundo => {
+
+                    // Cria o HTML de cada mundo.
+                    resultado.innerHTML += `
+
+                            <p>
+
+                                <strong>ID:</strong>
+                                ${mundo.id}
+                                <br>
+
+                                <strong>Name:</strong>
+                                ${mundo.name}
+                                <br>
+
+                                <strong>Climate:</strong>
+                                ${mundo.climate}
+                                <br>
+
+                                <strong>Land:</strong>
+                                ${mundo.land}
+                                <br>
+
+                                <strong>Population:</strong>
+                                ${mundo.population}
+                                <br>
+
+                                <button
+                                    type="button"
+                                    onclick="editarMundo(${mundo.id})">
+
+                                    Editar
+
+                                </button>
+
+                            </p>
+
+                            <hr>
+                        `;
+                });
+            });
+    }
+
 </script>
+
 </body>
+
 </html>

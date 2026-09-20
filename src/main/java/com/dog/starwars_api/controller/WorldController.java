@@ -1,9 +1,11 @@
 package com.dog.starwars_api.controller;
 
 
+import com.dog.starwars_api.dto.SwapInfoDto;
 import com.dog.starwars_api.dto.WorldRequest;
 import com.dog.starwars_api.dto.WorldResponse;
 import com.dog.starwars_api.mapper.WorldMapper;
+import com.dog.starwars_api.service.SwapInfoApi;
 import com.dog.starwars_api.service.WorldService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,11 +19,13 @@ import java.util.List;
 public class WorldController {
     private final WorldMapper mapper;
     private final WorldService service;
+    private final SwapInfoApi swapInfoApi;
 
 
-    public WorldController(WorldMapper mapper, WorldService service) {
+    public WorldController(WorldMapper mapper, WorldService service, SwapInfoApi swapInfoApi) {
         this.mapper = mapper;
         this.service = service;
+        this.swapInfoApi = swapInfoApi;
     }
 
     @PostMapping
@@ -33,7 +37,13 @@ public class WorldController {
     @GetMapping("/local")
     public ResponseEntity<List<WorldResponse>> findAllWorldLocal(){
             List<WorldResponse> responseList = mapper.toWorldsResponseList(service.findAllWorldsLocal()) ;
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseList);
+        return ResponseEntity.ok(responseList);
+    }
+
+    @GetMapping("/externo/{id}")
+    public ResponseEntity<SwapInfoDto> getSwapInfoWorlds(@PathVariable Long id){
+        SwapInfoDto swapInfoDto = swapInfoApi.getWorldsApi(id);
+         return ResponseEntity.ok(swapInfoDto);
     }
 
     @PutMapping("/{id}")

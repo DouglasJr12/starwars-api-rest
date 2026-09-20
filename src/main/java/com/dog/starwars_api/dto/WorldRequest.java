@@ -19,7 +19,6 @@ public class WorldRequest {
     @Size(min = 3, max = 50)
     private String land;
     @NotBlank(message = "População Do mundo é obrigatória")
-    @Size(min = 3, max = 50)
     private String population;
 
 }
